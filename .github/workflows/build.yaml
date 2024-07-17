@@ -1,12 +1,10 @@
 name: Build
 
-"on":
-  "push":
-    "tags":
-      - "v*"
-    "branches":
-      - "*"
-  "pull_request":
+on:
+  workflow_dispatch:
+  release:
+    # published: A release, pre-release, or draft of a release was published.
+    types: [published]
 
 jobs:
   build:
@@ -18,44 +16,44 @@ jobs:
 
       - uses: actions/setup-go@v2
         with:
-          go-version: 1.18
+          go-version: 1.22
 
       - name: Prepare environment and test
         run: |-
-          RELEASE_VERSION="${GITHUB_REF##*/}"
-          if [[ "${RELEASE_VERSION}" != v* ]]; then RELEASE_VERSION='dev'; fi
-          echo "RELEASE_VERSION=\"${RELEASE_VERSION}@${GITHUB_SHA:0:10}\"" | tee -a $GITHUB_ENV
+          VERSION="${GITHUB_REF##*/}"
+          if [[ "${VERSION}" != v* ]]; then VERSION='dev'; fi
+          echo "VERSION=\"${VERSION}@${GITHUB_SHA:0:10}\"" | tee -a $GITHUB_ENV
           go mod vendor
           go test ./... -v
 
       # Win
-      - run: GOOS=windows GOARCH=386 VERSION=${RELEASE_VERSION} make release
-      - run: GOOS=windows GOARCH=amd64 VERSION=${RELEASE_VERSION} make release
-      - run: GOOS=windows GOARCH=arm64 VERSION=${RELEASE_VERSION} make release
+      - run: GOOS=windows GOARCH=386 VERSION=${VERSION} make release
+      - run: GOOS=windows GOARCH=amd64 VERSION=${VERSION} make release
+      - run: GOOS=windows GOARCH=arm64 VERSION=${VERSION} make release
 
       # MacOS
-      - run: GOOS=darwin GOARCH=amd64 VERSION=${RELEASE_VERSION} make release
-      - run: GOOS=darwin GOARCH=arm64 VERSION=${RELEASE_VERSION} make release
+      - run: GOOS=darwin GOARCH=amd64 VERSION=${VERSION} make release
+      - run: GOOS=darwin GOARCH=arm64 VERSION=${VERSION} make release
 
       # Linux X86/AMD64
-      - run: GOOS=linux GOARCH=386 VERSION=${RELEASE_VERSION} make release
-      - run: GOOS=linux GOARCH=amd64 VERSION=${RELEASE_VERSION} make release
+      - run: GOOS=linux GOARCH=386 VERSION=${VERSION} make release
+      - run: GOOS=linux GOARCH=amd64 VERSION=${VERSION} make release
 
       # Linux ARM
-      - run: GOOS=linux GOARCH=arm GOARM=6 VERSION=${RELEASE_VERSION} make release
-      - run: GOOS=linux GOARCH=arm64 VERSION=${RELEASE_VERSION} make release
+      - run: GOOS=linux GOARCH=arm GOARM=6 VERSION=${VERSION} make release
+      - run: GOOS=linux GOARCH=arm64 VERSION=${VERSION} make release
 
       # Linux MIPS/MIPSLE
-      - run: GOOS=linux GOARCH=mips GOMIPS=softfloat VERSION=${RELEASE_VERSION} make release
-      - run: GOOS=linux GOARCH=mipsle GOMIPS=softfloat VERSION=${RELEASE_VERSION} make release
+      - run: GOOS=linux GOARCH=mips GOMIPS=softfloat VERSION=${VERSION} make release
+      - run: GOOS=linux GOARCH=mipsle GOMIPS=softfloat VERSION=${VERSION} make release
 
       # FreeBSD X86
-      - run: GOOS=freebsd GOARCH=386 VERSION=${RELEASE_VERSION} make release
-      - run: GOOS=freebsd GOARCH=amd64 VERSION=${RELEASE_VERSION} make release
+      - run: GOOS=freebsd GOARCH=386 VERSION=${VERSION} make release
+      - run: GOOS=freebsd GOARCH=amd64 VERSION=${VERSION} make release
 
       # FreeBSD ARM/ARM64
-      - run: GOOS=freebsd GOARCH=arm GOARM=6 VERSION=${RELEASE_VERSION} make release
-      - run: GOOS=freebsd GOARCH=arm64 VERSION=${RELEASE_VERSION} make release
+      - run: GOOS=freebsd GOARCH=arm GOARM=6 VERSION=${VERSION} make release
+      - run: GOOS=freebsd GOARCH=arm64 VERSION=${VERSION} make release
 
       - run: ls -l build/tcping-*
 
